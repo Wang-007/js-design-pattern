@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <!-- 2.策例模式：定义一系列的算法，把它们一个个的封装起来，并且使它们可以互相替换。
+        ①.利用组合、委托和多态等技术和思想，可以有效避免多重条件选择语句
+        ②.对开放-封闭原则的完美支持，将算法封装在独立的strategy中，使得它们易于切换，易于理解，易于扩展  -->
+  <form action="http://baidu.com" id="registerForm" method="post">
+    <label for="userName">
+      请输入用户名:
+      <input type="text" id="userName" name="userName">
+    </label>
+    <label for="password">
+      请输入用户名:
+      <input type="password" id="password" name="password">
+    </label>
+    <label for="mobile">
+      请输入手机号码:
+      <input type="text" id="mobile" name="mobile">
+    </label>
+    <button>提交</button>
+  </form>
+  <script>
+    var strategies = {
+      isNonEmpty: function ( value, errorMsg ) {
+        if ( value === '') {
+          return errorMsg;
+        }
+      },
+      minLength: function ( value, length, errorMsg ) {
+        if ( value.length < length ) {
+          return errorMsg;
+        }
+      },
+      isMobile: function ( value, errorMsg ) {
+        if ( !/(^1[3|5|8][0-9]{9}$)/.test( value ) ) {
+          return errorMsg;
+        }
+      }
+    }
+    var Validator = function () {
+      this.cache = [];
+    }
+    Validator.prototype.add = function ( dom, rules ) {
+      var self = this;
+      for ( var i = 0, rule; rule = rules[ i ++ ];) {
+        (function (rule) {
+          var strategyAry = rule.strategy.split( ':' );
+          var errorMsg = rule.errorMsg;
+          self.cache.push( function () {
+            var strategy = strategyAry.shift();
+            strategyAry.unshift( dom.value );
+            strategyAry.push( errorMsg );
+            return strategies[ strategy ].apply( dom, strategyAry );
+          })
+        })( rule )
+      }
+    }
+    Validator.prototype.start = function () {
+      for ( var i = 0, validatorFunc; validatorFunc = this.cache[ i ++ ]; ) {
+        var errorMsg = validatorFunc();
+        if ( errorMsg ) {
+          return errorMsg;
+        }
+      }
+    }
+    var registerForm = document.getElementById( 'registerForm' );
+    // console.log(registerForm.userName, registerForm.password, registerForm.mobile)
+    console.log(registerForm);
+    var validataFunc = function () {
+      console.log(registerForm);
+      var validator = new Validator();
+      validator.add( registerForm.userName, [
+        {
+          strategy: 'isNonEmpty',
+          errorMsg: '用户名不能为空',
+        },
+        {
+          strategy: 'minLength:10',
+          errorMsg: '用户名长度不能小于10位',
+        }
+      ]);
+      validator.add( registerForm.password, [
+        {
+          strategy: 'minLength:6',
+          errorMsg: '密码长度不能小于6位',
+        }
+      ]);
+      validator.add( registerForm.mobile, [
+        {
+          strategy: 'isMobile',
+          errorMsg: '手机号格式不正确',
+        }
+      ]);
+      var errorMsg = validator.start();
+      return errorMsg;
+    }
+    registerForm.onsubmit = function () {
+      var errorMsg = validataFunc();
+      if ( errorMsg ) {
+        console.log( errorMsg );
+        return false;
+      }
+    }
+    // console.log(registerForm.userName)
+    // new Validator().add( registerForm.userName, 'isNonEmpty', '用户名不能为空');
+  </script>
+</body>
+</html>
