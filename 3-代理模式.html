@@ -4,9 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>代理模式</title>
+  <title>3.代理模式</title>
 </head>
 <body>
-  <!-- 3.代理模式:为一个对象提供一个代用品或占位符,以便控制对它的访问 -->
+  <!-- 3.代理模式： 为一个对象提供一个代用品或占位符，以便控制对它的访问
+        虚拟代理： 把一些开销大的对象，延迟到真正需要的时候创建 （例：图片预加载（loading...和图片））
+        缓存代理：为开销大的运算结果，提供暂时的存储，在下次运算时，如果传递进来的参数跟之前一致，则可以直接返回前面存储的运算结果-->
+  <script>
+    var myImage = ( function () {
+      var imgNode = document.createElement( 'img' );
+      document.body.appendChild( imgNode );
+      return {
+        setSrc: function ( src ) {
+          imgNode.src = src;
+        }
+      }
+    } )();
+    var proxyImage = ( function () {
+      var img = new Image;
+      img.onload = function () {
+        myImage.setSrc( this.src );
+      }
+      return {
+        setSrc: function ( src ) {
+          myImage.setSrc( './01197c554dd6f10000009e327d7e83.jpg' );
+          img.src= src;
+        }
+      }
+    })();
+    proxyImage.setSrc('http://img.zcool.cn/community/0103c7558e4aa732f87598b5d1a101.gif');
+  </script>
 </body>
 </html>
